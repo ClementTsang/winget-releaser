@@ -4,27 +4,36 @@ author: vedantmgoyal9 (Vedant)
 inputs:
   identifier:
     required: true
+    description: "The winget package identifier."
   version:
     required: false
+    description: "The winget package version."
   installers-regex:
     required: true
-    default: '.(exe|msi|msix|appx)(bundle){0,1}$'
+    default: ".(exe|msi|msix|appx)(bundle){0,1}$"
+    description: "A regex on the release's assets to determine what file is the installer."
   max-versions-to-keep:
     required: true
-    default: '0'
+    default: "0"
+    description: "The max versions to keep. Set to 0 for all."
   release-repository:
     required: true
     default: ${{ github.event.repository.name }}
+    description: "The repository to look for releases in."
   release-tag:
     required: true
     default: ${{ github.event.release.tag_name || github.ref_name }}
+    description: "The release tag."
   release-notes-url:
     required: false
+    description: "Optional release notes."
   token:
     required: true
+    description: "The GitHub PAT. Keep this secret using repo secrets!"
   fork-user:
     required: true
     default: ${{ github.repository_owner }}
+    description: "Required if the owner of the winget repo fork is different from the caller."
 runs:
   using: composite
   steps:
@@ -38,6 +47,7 @@ runs:
           exit 1
         }
       shell: pwsh
+
     - run: |
         # check if max-versions-to-keep is a valid number and is 0 (keep all versions) or greater than 0
         $MaxVersionsToKeep = '${{ inputs.max-versions-to-keep }}'
@@ -46,13 +56,22 @@ runs:
           exit 1
         }
       shell: pwsh
-    - uses: cargo-bins/cargo-binstall@main
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-    - run: cargo binstall komac -y
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Set up Rust toolchain
+      uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      with:
+        toolchain: stable
+        components: rustfmt, clippy
+        target: ${{ matrix.info.target }}
+
+    - name: Enable Rust cache
+      uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # 2.8.1
+      with:
+        cache-all-crates: true
+
+    - run: cargo install --locked komac@v2.14.0 --locked
       shell: pwsh
+
     - run: |
         # get release information
         $ReleaseInfo = Invoke-RestMethod `
@@ -68,11 +87,13 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
       id: version-and-urls
       shell: pwsh
+
     - run: komac sync-fork
       env:
         KOMAC_FORK_OWNER: ${{ inputs.fork-user }}
         GITHUB_TOKEN: ${{ inputs.token }}
       shell: pwsh
+
     - run: |
         $ReplaceFlag = $Null
         $ReleaseNotesUrlFlag = $Null
@@ -90,11 +111,13 @@ runs:
         KOMAC_CREATED_WITH_URL: ${{ github.server_url }}/${{ github.action_repository }}
         GITHUB_TOKEN: ${{ inputs.token }}
       shell: pwsh
-    - run: 'komac cleanup --only-merged # clean up stale branches (for which PRs have been merged)'
+
+    - run: "komac cleanup --only-merged # clean up stale branches (for which PRs have been merged)"
       env:
         KOMAC_FORK_OWNER: ${{ inputs.fork-user }}
         GITHUB_TOKEN: ${{ inputs.token }}
       shell: pwsh
+
     - if: fromJSON(inputs.max-versions-to-keep) > 0 # https://docs.github.com/en/actions/learn-github-actions/expressions
       run: |
         # delete previous versions w.r.t. max-versions-to-keep (if any) 
