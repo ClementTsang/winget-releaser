@@ -67,9 +67,11 @@ runs:
     - name: Enable Rust cache
       uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # 2.8.1
       with:
+        cache-targets: false
+        cache-bin: true
         cache-all-crates: true
 
-    - run: cargo install --locked komac@v2.14.0 --locked
+    - run: cargo install --locked komac@2.14.0 --locked
       shell: pwsh
 
     - run: |
