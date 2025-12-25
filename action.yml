@@ -67,6 +67,7 @@ runs:
     - name: Enable Rust cache
       uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # 2.8.1
       with:
+        add-rust-environment-hash-key: false
         cache-targets: false
         cache-bin: true
         cache-all-crates: true
