@@ -60,7 +60,7 @@ runs:
     - name: Set up Rust toolchain
       uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
       with:
-        toolchain: stable
+        toolchain: 1.92.0
         target: ${{ matrix.info.target }}
 
     - name: Enable Rust cache
