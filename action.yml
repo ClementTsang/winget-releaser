@@ -71,7 +71,7 @@ runs:
         cache-bin: true
         cache-all-crates: true
 
-    - run: cargo install --locked komac@2.14.0 --locked
+    - run: cargo install --locked komac@2.14.0
       shell: pwsh
 
     - run: |
