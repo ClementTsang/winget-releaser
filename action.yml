@@ -63,14 +63,6 @@ runs:
         toolchain: 1.92.0
         target: ${{ matrix.info.target }}
 
-    - name: Enable Rust cache
-      uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # 2.0.1
-      with:
-        add-rust-environment-hash-key: false
-        cache-targets: false
-        cache-bin: true
-        cache-all-crates: true
-
     - run: cargo install --locked komac@2.16.0
       shell: pwsh
 
